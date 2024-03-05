@@ -7,7 +7,7 @@ namespace ModelMatch {
 	[CreateAssetMenu(menuName="ModelMatch/PrefabTexMap", fileName="PrefabTexMap")]
 	public class PrefabTexData : SerializedScriptableObject
 	{
-		public Dictionary<GameObject, Texture> map;
+		public Dictionary<GameObject, Sprite> map;
 	}
 
 }

@@ -4,6 +4,8 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 using System.Linq;
 using QFSW.QC;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 using Random = UnityEngine.Random;
 
@@ -11,6 +13,11 @@ namespace ModelMatch {
 	
 	public class GameLogic : MonoBehaviour
 	{
+		[TabGroup("Events")]
+		[SerializeField]
+		private UnityEvent<GameObject> _OnPickupComponent;
+		
+		[TabGroup("Config")]
 		public WallController wallController;
 		
 		public Transform ComponentsRoot;
@@ -23,7 +30,7 @@ namespace ModelMatch {
 		
 		public LevelData m_Level;
 		public PrefabTexData m_PrefabTaxMap;
-		public GameObject m_Card;
+		public Image m_Card;
 		
 		private List<Task> tasks = new	List<Task>();
 		private Task currTask = null;
@@ -48,10 +55,8 @@ namespace ModelMatch {
 			Debug.Log($"{Camera.main.pixelRect}");
 		}
 		
-		void SetCardImage(GameObject prefab, Texture frontTex, Texture backTex) {
-			var renderer = m_Card.GetComponent<MeshRenderer>();
-			renderer.materials[1].SetTexture("_BaseMap", frontTex);
-			renderer.materials[2].SetTexture("_BaseMap", backTex);
+		void SetCardImage(GameObject prefab, Sprite frontTex, Sprite backTex) {
+			m_Card.sprite = frontTex;
 		}
 		
 		protected IEnumerator Start()
@@ -101,6 +106,7 @@ namespace ModelMatch {
 			ComponentData comp = o.GetComponent<ComponentData>();
 			Task currTask = tasks.First();
 			if (currTask.ComponentAvailable(comp)) {
+				_OnPickupComponent.Invoke(o);
 				StartCoroutine(TweenAssembleComponent(comp));
 			}
 		}

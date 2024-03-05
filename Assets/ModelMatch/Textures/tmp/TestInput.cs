@@ -16,7 +16,6 @@ public class TestInput : MonoBehaviour
     }
     
 	public void OnClick(Vector2 position) {
-		Debug.Log("OnClick");
 		float size = bigSize ? 1 : 2;
 		transform.DOScale(size, duration).SetEase(Ease.OutBounce).OnComplete(() => {bigSize = !bigSize;});
 	}

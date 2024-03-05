@@ -20,8 +20,8 @@ namespace ModelMatch {
 		private Dictionary<int, ComponentData> compMaskMap;
 		private Material solidMat;
 		
-		public Texture m_FrontTex;
-		public Texture m_BackTex;
+		public Sprite m_FrontTex;
+		public Sprite m_BackTex;
 		
 		public float lerpFactor = 0.2f;
 		

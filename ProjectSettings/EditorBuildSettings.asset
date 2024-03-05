@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/ModelMatch/Scenes/TestHotUpdate.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
+    path: Assets/ModelMatch/Demo/New Scene UGUI.unity
+    guid: 379b68e5504882f4bb36c176a0d0b6a5
   m_configObjects: {}
