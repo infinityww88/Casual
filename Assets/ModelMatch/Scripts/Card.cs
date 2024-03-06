@@ -9,62 +9,80 @@ namespace ModelMatch {
 	
 	public class Card : MonoBehaviour
 	{
-		[SerializeField]
 		private Image card;
 		[SerializeField]
 		private float tweenDuration = 0.5f;
 		[SerializeField]
-		public Vector3 zoomMove = Vector3.zero;
+		private RectTransform zoomInFrame;
+		
 		[SerializeField]
-		public float zoomScale = 1;
+		private PreviewTexture previewTexture;
+		
+		private Transform zoomOutFrame;
+		private RectTransform dialog;
 		
 		private bool frontFace = true;
-		private bool zoom = false;
 		
-		private Tweener flipTweener = null;
-		private Tweener zoomTweener = null;
+		private bool isZoomIn = false;
 		
 		// Start is called before the first frame update
 		void Start()
 		{
-			
+			card = GetComponent<Image>();
+			Debug.Log($"{gameObject.name} {card}");
+			zoomOutFrame = card.transform.parent;
+			dialog = zoomInFrame.parent as RectTransform;
 		}
 		
 		[Button]
 		public void Flip() {
 			float angle = frontFace ? 180 : 0;
 			frontFace = !frontFace;
-			flipTweener = card.rectTransform.DOLocalRotate(Vector3.up * angle, tweenDuration, RotateMode.Fast);
+			card.rectTransform.DOLocalRotate(Vector3.up * angle, tweenDuration, RotateMode.Fast);
 		}
 		
 		[Button]
-		void TestFlip() {
-			if (flipTweener != null) {
-				flipTweener.Flip();
-			}
+		public void ZoomIn() {
+			isZoomIn = true;
+			Zoom(zoomInFrame);
+			dialog.gameObject.SetActive(true);
 		}
 		
 		[Button]
-		public void Zoom() {
-			Vector3 move = zoom ? Vector3.zero : zoomMove;
-			float scale = zoom ? 1 : zoomScale;
-			
-			if (zoom) {
-				zoom = false;
-			}
-			
-			card.rectTransform.DOLocalMove(move, tweenDuration, true);
-			card.rectTransform.DOScale(scale, tweenDuration);
-			
-			if (zoom) {
-				
+		public void ZoomOut() {
+			isZoomIn = false;
+			Zoom(zoomOutFrame, null);
+			dialog.gameObject.SetActive(false);
+		}
+		
+		private void Zoom(Transform parent, TweenCallback onEnd = null) {
+			var seq = DOTween.Sequence();
+			card.transform.SetParent(parent);
+			seq.Append(card.rectTransform.DOAnchorPos(Vector2.zero, tweenDuration));
+			seq.Join(card.rectTransform.DOSizeDelta(Vector2.zero, tweenDuration));
+			seq.SetTarget(card);
+			if (onEnd != null) {
+				seq.AppendCallback(onEnd);
 			}
 		}
 
-		// Update is called once per frame
-		void Update()
+		[Button]
+		public void Click() {
+			if (isZoomIn) {
+				Flip();
+			} else {
+				ZoomIn();
+			}
+		}
+		
+		// Update is called every frame, if the MonoBehaviour is enabled.
+		protected void Update()
 		{
-        
+			if (transform.rotation.eulerAngles.y >= 90) {
+				previewTexture.Back();
+			} else {
+				previewTexture.Front();
+			}
 		}
 	}
 }

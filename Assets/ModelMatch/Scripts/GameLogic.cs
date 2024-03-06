@@ -21,8 +21,11 @@ namespace ModelMatch {
 		public WallController wallController;
 		
 		public Transform ComponentsRoot;
-		public Transform TaskRoot;
+		
 		public Transform TaskPivot;
+		public Transform TaskRoot;
+		
+		public Transform TaskAnchor;
 		
 		public Material solidMaterial;
 		
@@ -68,7 +71,7 @@ namespace ModelMatch {
 			
 			yield return new WaitForSeconds(0.2f);
 			wallController.AlignWalls();
-			TaskRoot.position = TaskPivot.position;
+			TaskPivot.position = TaskAnchor.position;
 			yield return 0;
 			InitLevel();
 			NextTask();
@@ -134,8 +137,8 @@ namespace ModelMatch {
 			currTask.transform.localPosition = Vector3.zero;
 			currTask.transform.localRotation = Quaternion.identity;
 			currTask.transform.localScale = Vector3.one;
-			currTask.transform.SetParent(TaskRoot);
-			currTask.transform.position = TaskPivot.position;
+			//currTask.transform.SetParent(TaskRoot);
+			//currTask.transform.localPosition = Vector3.zero;
 			currTask.Begin();
 			
 			return currTask;
