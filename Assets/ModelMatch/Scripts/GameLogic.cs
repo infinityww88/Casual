@@ -6,6 +6,8 @@ using System.Linq;
 using QFSW.QC;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using DG.Tweening;
+using Cysharp.Threading.Tasks;
 
 using Random = UnityEngine.Random;
 
@@ -13,39 +15,50 @@ namespace ModelMatch {
 	
 	public class GameLogic : MonoBehaviour
 	{
-		[TabGroup("Events")]
 		[SerializeField]
 		private UnityEvent<GameObject> _OnPickupComponent;
 		
-		[TabGroup("Config")]
+		[TabGroup("Spread")]
 		public WallController wallController;
+		[TabGroup("Spread")]
+		public float m_AreaMargin = 0.5f;
+		[TabGroup("Spread")]
+		public int oneLayerNum = 10;
+		[TabGroup("Spread")]
+		public float heightStep = 1f;
 		
+		[TabGroup("Mount")]
 		public Transform ComponentsRoot;
-		
+		[TabGroup("Mount")]
 		public Transform TaskPivot;
+		[TabGroup("Mount")]
 		public Transform TaskRoot;
-		
+		[TabGroup("Mount")]
 		public Transform TaskAnchor;
 		
-		public Material solidMaterial;
-		
-		public float m_AreaMargin = 0.5f;
+		[TabGroup("UI")]
+		[SerializeField]
+		private RectTransform rootPanel;
+		[TabGroup("UI")]
+		[SerializeField]
+		private RectTransform interactBlock;
+		[TabGroup("UI")]
+		[SerializeField]
+		private Card taskCard;
 		
 		public LevelData m_Level;
-		public PrefabTexData m_PrefabTaxMap;
-		public Image m_Card;
 		
-		private List<Task> tasks = new	List<Task>();
-		private Task currTask = null;
+		private List<AssemblyTask> tasks = new	List<AssemblyTask>();
+		private AssemblyTask currTask = null;
 		
-		public int oneLayerNum = 10;
-		public float heightStep = 1f;
-		public RectTransform rootPanel;
+		[SerializeField]
+		private ParticleSystem _vfxAssemblySuccess;
 		
 		#region debug command
 		
 		#endregion
 		
+		[TabGroup("TestFunc")]
 		[Button]
 		private void InitLevel() {
 			wallController.AlignWalls();
@@ -53,13 +66,29 @@ namespace ModelMatch {
 			InitComponents();
 		}
 		
+		[TabGroup("TestFunc")]
 		[Button]
-		void CanvasInfo() {
-			Debug.Log($"{Camera.main.pixelRect}");
-		}
-		
-		void SetCardImage(GameObject prefab, Sprite frontTex, Sprite backTex) {
-			m_Card.sprite = frontTex;
+		async UniTaskVoid OnAssemblySuccess() {
+			if (currTask == null) {
+				return;
+			}
+			interactBlock.gameObject.SetActive(true);
+			await currTask.transform.DOScale(Vector3.zero, 0.4f).AsyncWaitForCompletion();
+			_vfxAssemblySuccess.Play();
+			await UniTask.WaitUntil(() => _vfxAssemblySuccess.isStopped);
+			await taskCard.OffScreen().AsyncWaitForCompletion();
+			taskCard.ToSpawnRect();
+			var t0 = taskCard.SpawnNew().AsyncWaitForCompletion();
+			NextTask();
+			if (currTask == null) {
+				await t0;
+			} else {
+				currTask.transform.localScale = Vector3.zero;
+				var t1 = currTask.transform.DOScale(Vector3.one, 0.4f).AsyncWaitForCompletion();
+				await UniTask.WhenAll(t0.AsUniTask(), t1.AsUniTask());
+			}
+			
+			interactBlock.gameObject.SetActive(false);
 		}
 		
 		protected IEnumerator Start()
@@ -77,6 +106,7 @@ namespace ModelMatch {
 			NextTask();
 		}
 	
+		[TabGroup("TestFunc")]
 		[Button]
 		public void Blow() {
 			var compRigids = ComponentsRoot.GetComponentsInChildren<Rigidbody>();
@@ -107,7 +137,7 @@ namespace ModelMatch {
 		
 		void OnPickupComponent(GameObject o) {
 			ComponentData comp = o.GetComponent<ComponentData>();
-			Task currTask = tasks.First();
+			AssemblyTask currTask = tasks.First();
 			if (currTask.ComponentAvailable(comp)) {
 				_OnPickupComponent.Invoke(o);
 				StartCoroutine(TweenAssembleComponent(comp));
@@ -117,12 +147,13 @@ namespace ModelMatch {
 		IEnumerator TweenAssembleComponent(ComponentData comp) {
 			yield return currTask.AssembleComponent(comp);
 			if (currTask.Done()) {
-				NextTask();
+				OnAssemblySuccess();
 			}
 		}
 		
+		[TabGroup("TestFunc")]
 		[Button]
-		private Task NextTask() {
+		private AssemblyTask NextTask() {
 			if (currTask != null) {
 				Destroy(currTask.gameObject);
 				tasks.RemoveAt(0);
@@ -132,13 +163,10 @@ namespace ModelMatch {
 				return currTask;
 			}
 			currTask = tasks.First();
-			SetCardImage(currTask.gameObject, currTask.m_FrontTex, currTask.m_BackTex);
 			currTask.gameObject.SetActive(true);
 			currTask.transform.localPosition = Vector3.zero;
 			currTask.transform.localRotation = Quaternion.identity;
 			currTask.transform.localScale = Vector3.one;
-			//currTask.transform.SetParent(TaskRoot);
-			//currTask.transform.localPosition = Vector3.zero;
 			currTask.Begin();
 			
 			return currTask;
@@ -149,8 +177,7 @@ namespace ModelMatch {
 				var prefab = item.m_Model;
 				for (int i = 0; i < item.m_Num; i++) {
 					var taskObj = Instantiate(prefab, TaskRoot);
-					var task = taskObj.AddComponent<Task>();
-					task.m_FrontTex = task.m_BackTex = m_PrefabTaxMap.map[prefab];
+					var task = taskObj.AddComponent<AssemblyTask>();
 					tasks.Add(task);
 					taskObj.SetActive(false);
 				}

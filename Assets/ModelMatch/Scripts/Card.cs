@@ -14,6 +14,10 @@ namespace ModelMatch {
 		private float tweenDuration = 0.5f;
 		[SerializeField]
 		private RectTransform zoomInFrame;
+		[SerializeField]
+		private RectTransform offScreenRect;
+		[SerializeField]
+		private RectTransform spawnRect;
 		
 		[SerializeField]
 		private PreviewTexture previewTexture;
@@ -34,7 +38,6 @@ namespace ModelMatch {
 			dialog = zoomInFrame.parent as RectTransform;
 		}
 		
-		[Button]
 		public void Flip() {
 			float angle = frontFace ? 180 : 0;
 			frontFace = !frontFace;
@@ -42,13 +45,29 @@ namespace ModelMatch {
 		}
 		
 		[Button]
+		public Tween OffScreen() {
+			return transform.DOMove(offScreenRect.position, 0.4f);
+		}
+		
+		[Button]
+		public void ToSpawnRect() {
+			transform.position = spawnRect.position;
+			transform.localScale = spawnRect.localScale;
+		}
+		
+		[Button]
+		public Tween SpawnNew() {
+			return DOTween.Sequence()
+				.Append(transform.DOLocalMove(Vector3.zero, 0.4f))
+				.Join(transform.DOScale(Vector3.one, 0.4f));
+		}
+		
 		public void ZoomIn() {
 			isZoomIn = true;
 			Zoom(zoomInFrame);
 			dialog.gameObject.SetActive(true);
 		}
 		
-		[Button]
 		public void ZoomOut() {
 			isZoomIn = false;
 			Zoom(zoomOutFrame, null);
@@ -66,7 +85,6 @@ namespace ModelMatch {
 			}
 		}
 
-		[Button]
 		public void Click() {
 			if (isZoomIn) {
 				Flip();

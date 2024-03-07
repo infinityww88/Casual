@@ -19,6 +19,7 @@ namespace ModelMatch {
 		
 		public void OnTouchCancel() {
 			if (lastHighlight != null) {
+				lastHighlight.transform.localScale /= 1.2f;
 				lastHighlight.enabled = false;
 				GlobalManager.Instance.OnPickupComponent?.Invoke(lastHighlight.gameObject);
 				lastHighlight = null;
@@ -37,6 +38,7 @@ namespace ModelMatch {
 			Ray ray = Camera.main.ScreenPointToRay(pos);
 			if (!Physics.Raycast(ray, out RaycastHit hitInfo, Mathf.Infinity, pickLayerMask)) {
 				if (lastHighlight != null) {
+					lastHighlight.transform.localScale /= 1.2f;
 					lastHighlight.enabled = false;
 					lastHighlight = null;
 				}
@@ -46,6 +48,10 @@ namespace ModelMatch {
 			var go = hitInfo.collider.transform.gameObject;
 			if (go == lastHighlight) {
 				return;
+			}
+			go.transform.localScale *= 1.2f;
+			if (lastHighlight != null) {
+				lastHighlight.transform.localScale /= 1.2f;
 			}
 			Outline outline;
 			if (!go.TryGetComponent<Outline>(out outline)) {

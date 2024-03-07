@@ -5,7 +5,7 @@ using DG.Tweening;
 
 namespace ModelMatch {
 	
-	public class Task : MonoBehaviour
+	public class AssemblyTask : MonoBehaviour
 	{
 		public Material transparentMat;
 		[SerializeField]
@@ -19,10 +19,7 @@ namespace ModelMatch {
 		
 		private Dictionary<int, ComponentData> compMaskMap;
 		private Material solidMat;
-		
-		public Sprite m_FrontTex;
-		public Sprite m_BackTex;
-		
+	
 		public float lerpFactor = 0.2f;
 		
 		// Start is called on the frame when a script is enabled just before any of the Update methods is called the first time.
