@@ -13,13 +13,9 @@ MonoBehaviour:
   m_Name: level0
   m_EditorClassIdentifier: 
   tasks:
-  - m_Model: {fileID: 9116220765789798842, guid: 230afa305e52292439c10657504efe78, type: 3}
-    m_Num: 2
   - m_Model: {fileID: 5916641675143667621, guid: 573bf11af5068a24a8f79a3e674c6a76, type: 3}
     m_Num: 2
   - m_Model: {fileID: 7121140480573275259, guid: ea3b7606957eb6643935b91c387f37b0, type: 3}
-    m_Num: 2
-  - m_Model: {fileID: 7263711785089368248, guid: 152a42e74ba79504bbb6cae1e05a7d18, type: 3}
     m_Num: 1
   intersperses:
   - m_Model: {fileID: 7263711785089368248, guid: 152a42e74ba79504bbb6cae1e05a7d18, type: 3}

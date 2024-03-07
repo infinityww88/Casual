@@ -45,6 +45,15 @@ namespace ModelMatch {
 		[TabGroup("UI")]
 		[SerializeField]
 		private Card taskCard;
+		[TabGroup("UI")]
+		[SerializeField]
+		private Transform taskPreviewAttachPoint;
+		[TabGroup("UI")]
+		[SerializeField]
+		private RectTransform nextTaskCard;
+		[TabGroup("UI")]
+		[SerializeField]
+		private Transform nextTaskPreviewAttachPoint;
 		
 		public LevelData m_Level;
 		
@@ -77,14 +86,16 @@ namespace ModelMatch {
 			_vfxAssemblySuccess.Play();
 			await UniTask.WaitUntil(() => _vfxAssemblySuccess.isStopped);
 			await taskCard.OffScreen().AsyncWaitForCompletion();
-			taskCard.ToSpawnRect();
-			var t0 = taskCard.SpawnNew().AsyncWaitForCompletion();
+			
 			NextTask();
-			if (currTask == null) {
-				await t0;
-			} else {
+			
+			if (currTask != null) {
+				taskCard.ToSpawnRect();
+				var t0 = taskCard.SpawnNew()
+					.AsyncWaitForCompletion();
 				currTask.transform.localScale = Vector3.zero;
-				var t1 = currTask.transform.DOScale(Vector3.one, 0.4f).AsyncWaitForCompletion();
+				var t1 = currTask.transform.DOScale(Vector3.one, 0.4f)
+					.AsyncWaitForCompletion();
 				await UniTask.WhenAll(t0.AsUniTask(), t1.AsUniTask());
 			}
 			
@@ -158,6 +169,9 @@ namespace ModelMatch {
 				Destroy(currTask.gameObject);
 				tasks.RemoveAt(0);
 			}
+			if (taskPreviewAttachPoint.childCount > 0) {
+				Destroy(taskPreviewAttachPoint.GetChild(0).gameObject);
+			}
 			if (tasks.Count == 0) {
 				currTask = null;
 				return currTask;
@@ -167,9 +181,44 @@ namespace ModelMatch {
 			currTask.transform.localPosition = Vector3.zero;
 			currTask.transform.localRotation = Quaternion.identity;
 			currTask.transform.localScale = Vector3.one;
+			
+			NextTaskPreview();
+			
 			currTask.Begin();
 			
 			return currTask;
+		}
+		
+		[Button]
+		private void NextTaskPreview() {
+			if (nextTaskPreviewAttachPoint.childCount > 0) {
+				var t = nextTaskPreviewAttachPoint.GetChild(0);
+				t.SetParent(taskPreviewAttachPoint, false);
+			} else {
+				var t = Instantiate(currTask.gameObject, taskPreviewAttachPoint);
+				t.transform.localPosition = Vector3.zero;
+				t.transform.localRotation = Quaternion.identity;
+				t.SetActive(true);
+				SetHierarchyLayer(t.gameObject, "TaskPreview");
+			}
+			if (tasks.Count > 1) {
+				var t = Instantiate(tasks[1].gameObject, nextTaskPreviewAttachPoint);
+				t.transform.localPosition = Vector3.zero;
+				t.transform.localRotation = Quaternion.identity;
+				t.SetActive(true);
+				SetHierarchyLayer(t.gameObject, "TaskPreview");
+			}
+			else {
+				nextTaskCard.gameObject.SetActive(false);
+			}
+		}
+		
+		private void SetHierarchyLayer(GameObject go, string mask) {
+			foreach (var t in go.GetComponentsInChildren<MeshRenderer>()) {
+				var m = LayerMask.NameToLayer("TaskPreview");
+				Debug.Log($"set mask: {t.gameObject.name} {m}");
+				t.gameObject.layer = m;
+			}
 		}
 		
 		private void InitTask() {

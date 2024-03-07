@@ -7,10 +7,6 @@ public class PreviewTexture : MonoBehaviour
 {
 	[SerializeField]
 	private Transform pivot;
-	[SerializeField]
-	private Light light;
-	[SerializeField]
-	private Transform attachPoint;
 	
 	[Button]
 	public void Front() {

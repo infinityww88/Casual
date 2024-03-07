@@ -9,7 +9,7 @@ namespace ModelMatch {
 	{
 		public LayerMask pickLayerMask;
 		
-		private Outline lastHighlight = null;
+		private GameObject lastPickObject = null;
 		
 		// Start is called before the first frame update
 		void Start()
@@ -17,12 +17,29 @@ namespace ModelMatch {
 			
 		}
 		
-		public void OnTouchCancel() {
-			if (lastHighlight != null) {
-				lastHighlight.transform.localScale /= 1.2f;
-				lastHighlight.enabled = false;
-				GlobalManager.Instance.OnPickupComponent?.Invoke(lastHighlight.gameObject);
-				lastHighlight = null;
+		private void HighLight(GameObject go) {
+			go.GetComponent<Rigidbody>().isKinematic = true;
+			go.transform.localScale *= 1.2f;
+			Outline outline;
+			if (!go.TryGetComponent<Outline>(out outline)) {
+				outline = go.AddComponent<Outline>();
+				outline.OutlineColor = Color.yellow;
+				outline.OutlineWidth = 6;
+			}
+			outline.enabled = true;
+		}
+		
+		private void UnhighLight(GameObject go) {
+			go.GetComponent<Rigidbody>().isKinematic = false;
+			go.transform.localScale /= 1.2f;
+			go.GetComponent<Outline>().enabled = false;
+		}
+		
+		public void OnTouchEnd() {
+			if (lastPickObject != null) {
+				UnhighLight(lastPickObject);
+				GlobalManager.Instance.OnPickupComponent?.Invoke(lastPickObject);
+				lastPickObject = null;
 			}
 		}
 		
@@ -30,45 +47,32 @@ namespace ModelMatch {
 			if (!finger.Up) {
 				PickUpModel(finger.ScreenPosition);
 			} else {
-				OnTouchCancel();
+				OnTouchEnd();
 			}
 		}
 		
 		public void PickUpModel(Vector2 pos) {
 			Ray ray = Camera.main.ScreenPointToRay(pos);
 			if (!Physics.Raycast(ray, out RaycastHit hitInfo, Mathf.Infinity, pickLayerMask)) {
-				if (lastHighlight != null) {
-					lastHighlight.transform.localScale /= 1.2f;
-					lastHighlight.enabled = false;
-					lastHighlight = null;
+				if (lastPickObject != null) {
+					UnhighLight(lastPickObject);
+					lastPickObject = null;
 				}
 				return;
 			}
 			
 			var go = hitInfo.collider.transform.gameObject;
-			if (go == lastHighlight) {
+			if (go == lastPickObject) {
 				return;
 			}
-			go.transform.localScale *= 1.2f;
-			if (lastHighlight != null) {
-				lastHighlight.transform.localScale /= 1.2f;
-			}
-			Outline outline;
-			if (!go.TryGetComponent<Outline>(out outline)) {
-				outline = go.AddComponent<Outline>();
-				outline.OutlineColor = Color.yellow;
-				outline.OutlineWidth = 6;
-			}
+			HighLight(go);
 			
-			if (lastHighlight != outline) {
-				if (lastHighlight != null) {
-					lastHighlight.enabled = false;
+			if (lastPickObject != go) {
+				if (lastPickObject != null) {
+					UnhighLight(lastPickObject);
 				}
-				lastHighlight = outline;
+				lastPickObject = go;
 			}
-			
-			outline.enabled = true;
 		}
 	}
-
 }
