@@ -116,8 +116,15 @@ namespace ModelMatch {
 			InitLevel();
 			NextTask();
 		}
+		
+		public void Magnet() {
+			Debug.Log("Magent");
+		}
+		
+		public void AddTime() {
+			Debug.Log("AddTime");
+		}
 	
-		[TabGroup("TestFunc")]
 		[Button]
 		public void Blow() {
 			var compRigids = ComponentsRoot.GetComponentsInChildren<Rigidbody>();
@@ -147,8 +154,10 @@ namespace ModelMatch {
 		}
 		
 		void OnPickupComponent(GameObject o) {
+			if (currTask == null) {
+				return;
+			}
 			ComponentData comp = o.GetComponent<ComponentData>();
-			AssemblyTask currTask = tasks.First();
 			if (currTask.ComponentAvailable(comp)) {
 				_OnPickupComponent.Invoke(o);
 				StartCoroutine(TweenAssembleComponent(comp));
@@ -216,7 +225,6 @@ namespace ModelMatch {
 		private void SetHierarchyLayer(GameObject go, string mask) {
 			foreach (var t in go.GetComponentsInChildren<MeshRenderer>()) {
 				var m = LayerMask.NameToLayer("TaskPreview");
-				Debug.Log($"set mask: {t.gameObject.name} {m}");
 				t.gameObject.layer = m;
 			}
 		}

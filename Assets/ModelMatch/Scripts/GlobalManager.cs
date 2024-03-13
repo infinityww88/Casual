@@ -7,7 +7,9 @@ namespace ModelMatch {
 	public class GlobalManager : MonoBehaviour
 	{
 		public Action<GameObject> OnPickupComponent;
+		public Action OnMagnet;
 		public Action OnBlow;
+		public Action OnAddTime;
 		
 		public static GlobalManager Instance;
 		
